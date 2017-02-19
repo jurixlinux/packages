@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -e
+
+CWD=$(pwd)
+
+TMP=${TMP:-/tmp/sources}
+OUT=${OUT:-/tmp/packages}
+
+NAME=man-pages
+VERSION=4.09
+
+PKG=${TMP}/package-${NAME}-${VERSION}
+
+rm -rf $PKG
+mkdir -p $PKG $OUT
+
+cd $TMP
+wget https://www.kernel.org/pub/linux/docs/${NAME}/${NAME}-${VERSION}.tar.xz
+tar xvfJ ${NAME}-${VERSION}.tar.xz
+cd ${NAME}-${VERSION}
+make DESTDIR=${PKG} install
+
+cd $PKG
+makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+
+rm -rf $PKG $TMP
