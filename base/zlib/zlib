@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+CWD=$(pwd)
+
+TMP=${TMP:-/tmp/sources}
+OUT=${OUT:-/tmp/packages}
+
+NAME=zlib
+VERSION=1.2.11
+
+PKG=${TMP}/package-${NAME}-${VERSION}
+
+rm -rf $PKG
+mkdir -p $PKG $OUT
+
+cd $TMP
+wget http://zlib.net/${NAME}-${VERSION}.tar.xz
+tar xvfJ ${NAME}-${VERSION}.tar.xz
+cd ${NAME}-${VERSION}
+./configure --prefix=/usr
+make
+make DESTDIR=${PKG} install
+mkdir ${PKG}/lib64
+mv -v ${PKG}/usr/lib/libz.so.* ${PKG}/lib64
+ln -sfv ${PKG}../../lib/$(readlink ${PKG}/usr/lib/libz.so) ${PKG}/usr/lib/libz.so
+
+cd $PKG
+makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+
+rm -rf $PKG $TMP
