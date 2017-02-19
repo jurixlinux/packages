@@ -1,0 +1,69 @@
+#!/bin/sh
+
+set -e
+
+CWD=$(pwd)
+
+TMP=${TMP:-/tmp/sources}
+OUT=${OUT:-/tmp/packages}
+
+NAME=glibc
+VERSION=2.25
+
+PKG=${TMP}/package-${NAME}-${VERSION}
+
+rm -rf $PKG
+mkdir -p $PKG $OUT $TMP
+
+cd $TMP
+wget http://ftp.gnu.org/gnu/${NAME}/${NAME}-${VERSION}.tar.xz
+tar xvfJ ${NAME}-${VERSION}.tar.xz
+cd ${NAME}-${VERSION}
+
+        export CC="gcc"
+        export CXX="g++"
+        export BUILDHOST="x86_64-jurix-linux"
+        export CFLAGS="-O3 -g2 -mtune=generic -march=x86-64"
+	mkdir -v build
+	cd       build
+	../configure --prefix=/usr                      \
+                     --libexecdir=/usr/lib              \
+                     --with-headers=/usr/include        \
+                     --enable-kernel=2.6.32             \
+                     --enable-obsolete-rpc              \
+                     --enable-stack-protector=strong    \
+                     --enable-add-ons                   \
+                     --enable-bind-now                  \
+                     --enable-stackguard-randomization  \
+                     --enable-lock-elision              \
+                     --enable-static-nss                \
+                     --without-cvs                      \
+                     --without-gd                       \
+                     --without-selinux                  \
+                     --disable-profile                  \
+                     --disable-werror                   \
+                     --build=${BUILDHOST}
+	make
+	make install_root=${PKG} install
+	mkdir -pv ${PKG}/usr/lib/locale
+#	make install_root=${PKG} localedata/install-locales
+	cp -vf ${CWD}/{ld.so.conf,nsswitch.conf} ${PKG}/etc
+	mkdir -pv ${PKG}/etc/{default,ld.so.conf.d}
+	install -p -m644 ../nis/nss ${PKG}/etc/default/nss
+	rm -vf ${PKG}/sbin/sln
+	rm -vf ${PKG}/usr/bin/rpcinfo
+	cp -v ../nscd/nscd.conf ${PKG}/etc/nscd.conf
+	mkdir -pv ${PKG}/var/cache/nscd
+#	install -v -Dm644 ../nscd/nscd.tmpfiles ${PKG}/usr/lib/tmpfiles.d/nscd.conf
+#	install -v -Dm644 ../nscd/nscd.service ${PKG}/lib/systemd/system/nscd.service
+	rm -v ${PKG}/etc/ld.so.cache
+	install -d -D -m 00755 ${PKG}/var/run/nscd
+	install -d -D -m 00755 ${PKG}/var/db/nscd
+	rm -rvf ${PKG}/usr/share/zoneinfo
+	rm -v ${PKG}/usr/sbin/zdump
+	mkdir -pv ${PKG}/etc/ld.so.conf.d
+
+cd $PKG
+makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+
+rm -rf $PKG $TMP
