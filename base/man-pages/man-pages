@@ -22,6 +22,6 @@ cd ${NAME}-${VERSION}
 make DESTDIR=${PKG} install
 
 cd $PKG
-makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+makepkg -l y -c n ${OUT}/${NAME}-${VERSION}.pm
 
 rm -rf $PKG $TMP
