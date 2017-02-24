@@ -64,6 +64,6 @@ cd ${NAME}-${VERSION}
 	mkdir -pv ${PKG}/etc/ld.so.conf.d
 
 cd $PKG
-makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+makepkg -l y -c n ${OUT}/${NAME}-${VERSION}.pm
 
 rm -rf $PKG $TMP
