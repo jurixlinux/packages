@@ -27,6 +27,6 @@ mv -v ${PKG}/usr/lib/libz.so.* ${PKG}/lib64
 ln -sfv ${PKG}../../lib/$(readlink ${PKG}/usr/lib/libz.so) ${PKG}/usr/lib/libz.so
 
 cd $PKG
-makepkg -l prepend ${OUT}/${NAME}-${VERSION}.tlz
+makepkg -l y -c n ${OUT}/${NAME}-${VERSION}.pm
 
 rm -rf $PKG $TMP
